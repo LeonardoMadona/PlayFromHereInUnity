@@ -9,6 +9,9 @@ public class PlayFromHere : Editor
     static Vector2 mousePos;
 
     static PlayFromHereData data;
+    
+    [SerializeField]
+    static playerGameObject;
 
     static PlayFromHere()
     {
@@ -92,7 +95,11 @@ public class PlayFromHere : Editor
 
     static void SpawnPlayerObjectAt(Vector3 pos)
     {
-        Instantiate(data.playerObject, pos, Quaternion.identity).name = data.temporaryPlayerName;
+        if(playerGameObject != null)
+        {
+            Debug.Log("Atempting to create a new player object when there was already one. Will proceed and override the reference.");
+        }
+        playerGameObject = Instantiate(data.playerObject, pos, Quaternion.identity).name = data.temporaryPlayerName;
     }
 
     static void ResetState(PlayModeStateChange state)
@@ -100,11 +107,9 @@ public class PlayFromHere : Editor
 
         if (state == PlayModeStateChange.EnteredEditMode && data.running)
         {
-            GameObject tempPlayer = GameObject.Find(data.temporaryPlayerName);
-
-            if (tempPlayer != null)
+            if (playerGameObject != null)
             {
-                DestroyImmediate(tempPlayer);
+                DestroyImmediate(playerGameObject);
             }
             else
             {
