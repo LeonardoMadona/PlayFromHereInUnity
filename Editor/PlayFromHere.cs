@@ -9,9 +9,6 @@ public class PlayFromHere : Editor
     static Vector2 mousePos;
 
     static PlayFromHereData data;
-    
-    [SerializeField]
-    static playerGameObject;
 
     static PlayFromHere()
     {
@@ -25,7 +22,6 @@ public class PlayFromHere : Editor
 
     static void FetchScriptableObjectData()
     {
-        //grab data from the Scriptable Object
         data = Resources.Load("PlayFromHereDataSO") as PlayFromHereData;
     }
 
@@ -38,8 +34,7 @@ public class PlayFromHere : Editor
             if (Event.current.rawType == EventType.MouseDown)
             {
                 oldMousePos = mousePos;
-            }              
-            //don't open the menu if the mouse moved between mouse down and mouse up
+            }
             else if (Event.current.rawType == EventType.MouseUp && mousePos == oldMousePos)
             {
                 if (data == null)
@@ -48,12 +43,10 @@ public class PlayFromHere : Editor
                 }
                 if (data.running)
                 {
-                    //The user shouldn't be able to open the menu if the script's already running
                     Debug.Log("PlayFromHere is already tagged as running. Change the ScriptableObject if that isn't the case. Aborting Request.");
                     return;
                 }
 
-                //Right-click menu configuration
                 GenericMenu menu = new GenericMenu();
                 menu.AddItem(new GUIContent("Play from here"), false, ActivatePlayFromHere, 1);
                 menu.ShowAsContext();
@@ -82,8 +75,6 @@ public class PlayFromHere : Editor
             SpawnPlayerObjectAt(hit.point);
 
             EditorApplication.EnterPlaymode();
-            
-            //fetch data after entering play mode because this class instance will be reset
             data = Resources.Load("PlayFromHereDataSO") as PlayFromHereData;
             data.running = true;
         }
@@ -95,11 +86,7 @@ public class PlayFromHere : Editor
 
     static void SpawnPlayerObjectAt(Vector3 pos)
     {
-        if(playerGameObject != null)
-        {
-            Debug.Log("Atempting to create a new player object when there was already one. Will proceed and override the reference.");
-        }
-        playerGameObject = Instantiate(data.playerObject, pos, Quaternion.identity).name = data.temporaryPlayerName;
+        Instantiate(data.playerObject, pos, Quaternion.identity).name = data.temporaryPlayerName;
     }
 
     static void ResetState(PlayModeStateChange state)
@@ -107,14 +94,10 @@ public class PlayFromHere : Editor
 
         if (state == PlayModeStateChange.EnteredEditMode && data.running)
         {
-            if (playerGameObject != null)
-            {
-                DestroyImmediate(playerGameObject);
-            }
-            else
-            {
-                Debug.Log("Couldn't find temporary player prefab. It either doesn't exist or was renamed during play time. Aborting request");
-            }
+            GameObject tempPlayer = GameObject.Find(data.temporaryPlayerName);
+
+            if (tempPlayer != null)
+                DestroyImmediate(tempPlayer);
 
             data.running = false;
         }
